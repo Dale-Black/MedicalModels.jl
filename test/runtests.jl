@@ -1,6 +1,7 @@
-using MedicalModels
-using Test
+include("./imports.jl")
 
-@testset "MedicalModels.jl" begin
-    # Write your tests here.
-end
+include("utils.jl")
+
+# @testset "MedicalModels.jl" begin
+#     # Write your tests here.
+# end
