@@ -1,75 +1,75 @@
 # Adapted from https://github.com/DhairyaLGandhi/UNet.jl/blob/master/src/model.jl
 
-function BatchNormWrap(out_ch)
+function BatchNormWrap3D(out_ch)
   Chain(x -> expand_dims(x, 3), BatchNorm(out_ch), x -> squeeze(x))
 end
 
-UNetConvBlock(in_chs, out_chs, kernel = (3, 3, 3)) = 
+UNetConvBlock3D(in_chs, out_chs, kernel = (3, 3, 3)) = 
 	Chain(
 		Conv(kernel, in_chs => out_chs, pad = (1, 1, 1)), 
-		BatchNormWrap(out_chs),
+		BatchNormWrap3D(out_chs),
     x -> leakyrelu.(x, 0.2f0))
     
-ConvDown(in_chs, out_chs, kernel = (4, 4, 4)) = Chain(
+ConvDown3D(in_chs, out_chs, kernel = (4, 4, 4)) = Chain(
   Conv(kernel, in_chs => out_chs, pad = (1, 1, 1), stride = (2, 2, 2)),
-  BatchNormWrap(out_chs),
+  BatchNormWrap3D(out_chs),
   x -> leakyrelu.(x, 0.2f0))
 
-	struct UNetUpBlock
+	struct UNetUpBlock3D
     upsample
 end
 
-@functor UNetUpBlock
+@functor UNetUpBlock3D
 
-UNetUpBlock(in_chs::Int, out_chs::Int; kernel = (3, 3, 3), p = 0.5f0) = 
-  UNetUpBlock(
+UNetUpBlock3D(in_chs::Int, out_chs::Int; kernel = (3, 3, 3), p = 0.5f0) = 
+  UNetUpBlock3D(
     Chain(
       x -> leakyrelu.(x, 0.2f0),
       ConvTranspose((2, 2, 2), in_chs => out_chs, stride = (2, 2, 2)),
-      BatchNormWrap(out_chs),
+      BatchNormWrap3D(out_chs),
       Dropout(p)))
 
-function (u::UNetUpBlock)(x, bridge)
+function (u::UNetUpBlock3D)(x, bridge)
   x = u.upsample(x)
   return cat(x, bridge, dims = 4)
 end
 
-struct Unet
+struct Unet3D
   conv_down_blocks
   conv_blocks
   up_blocks
 end
 
-@functor Unet
+@functor Unet3D
 
-function Unet(channels::Int = 1, labels::Int = channels)
+function Unet3D(channels::Int = 1, labels::Int = channels)
   conv_down_blocks = Chain(
-    ConvDown(64, 64),
-    ConvDown(128, 128),
-    ConvDown(256, 256),
-    ConvDown(512, 512))
+    ConvDown3D(64, 64),
+    ConvDown3D(128, 128),
+    ConvDown3D(256, 256),
+    ConvDown3D(512, 512))
 
   conv_blocks = Chain(
-    UNetConvBlock(channels, 3),
-    UNetConvBlock(3, 64),
-    UNetConvBlock(64, 128),
-    UNetConvBlock(128, 256),
-    UNetConvBlock(256, 512),
-    UNetConvBlock(512, 1024),
-    UNetConvBlock(1024, 1024))
+    UNetConvBlock3D(channels, 3),
+    UNetConvBlock3D(3, 64),
+    UNetConvBlock3D(64, 128),
+    UNetConvBlock3D(128, 256),
+    UNetConvBlock3D(256, 512),
+    UNetConvBlock3D(512, 1024),
+    UNetConvBlock3D(1024, 1024))
 
   up_blocks = Chain(
-    UNetUpBlock(1024, 512),
-    UNetUpBlock(1024, 256),
-    UNetUpBlock(512, 128),
-    UNetUpBlock(256, 64,p = 0.0f0),
+    UNetUpBlock3D(1024, 512),
+    UNetUpBlock3D(1024, 256),
+    UNetUpBlock3D(512, 128),
+    UNetUpBlock3D(256, 64,p = 0.0f0),
     Chain(x -> leakyrelu.(x, 0.2f0),
     Conv((1, 1, 1), 128 => labels)))
 
   Unet(conv_down_blocks, conv_blocks, up_blocks)
   end
 
-function (u::Unet)(x::AbstractArray)
+function (u::Unet3D)(x::AbstractArray)
   op = u.conv_blocks[1:2](x)
 
   x1 = u.conv_blocks[3](u.conv_down_blocks[1](op))

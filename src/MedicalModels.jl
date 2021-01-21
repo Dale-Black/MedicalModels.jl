@@ -3,9 +3,9 @@ module MedicalModels
 using Flux
 using Functors
 
-include("./unet.jl")
+include("./Unet3D.jl")
 include("./utils.jl")
 
-export Unet
+export Unet3D
 
 end
