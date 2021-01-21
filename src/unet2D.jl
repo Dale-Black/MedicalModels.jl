@@ -64,9 +64,9 @@ function BatchNormWrap2D(out_ch)
       UNetUpBlock2D(512, 128),
       UNetUpBlock2D(256, 64,p = 0.0f0),
       Chain(x -> leakyrelu.(x, 0.2f0),
-      Conv((1, 1, 1), 128 => labels)))
+      Conv((1, 1), 128 => labels)))
   
-    Unet(conv_down_blocks, conv_blocks, up_blocks)
+    Unet2D(conv_down_blocks, conv_blocks, up_blocks)
     end
   
   function (u::Unet2D)(x::AbstractArray)

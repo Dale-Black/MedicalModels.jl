@@ -66,7 +66,7 @@ function Unet3D(channels::Int = 1, labels::Int = channels)
     Chain(x -> leakyrelu.(x, 0.2f0),
     Conv((1, 1, 1), 128 => labels)))
 
-  Unet(conv_down_blocks, conv_blocks, up_blocks)
+  Unet3D(conv_down_blocks, conv_blocks, up_blocks)
   end
 
 function (u::Unet3D)(x::AbstractArray)

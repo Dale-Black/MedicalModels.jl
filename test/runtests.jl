@@ -1,7 +1,6 @@
 include("./imports.jl")
 
 include("utils.jl")
+include("unet2D.jl")
+include("unet3D.jl")
 
-# @testset "MedicalModels.jl" begin
-#     # Write your tests here.
-# end
