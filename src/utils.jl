@@ -1,20 +1,12 @@
-expand_dims(x, n::Int) = reshape(x, ones(Int64,n)..., size(x)...)
+# 3D layer utilities
+conv = (x, stride, in, out) -> Conv((3, 3, 3), in=>out, stride=stride, pad=SamePad())(x)
+tran = (x, stride, in, out) -> ConvTranspose((3, 3, 3), in=>out, stride=stride, pad=SamePad())(x)
+norm = (x, channels) -> BatchNorm(channels)(x)
 
-function squeeze(x)
-	if size(x)[end] == 1 && size(x)[end-1] != 1
-		# For the case BATCH_SIZE = 1 and Channels != 1
-		int_val = dropdims(x, dims = tuple(findall(size(x) .== 1)...))
-        return reshape(int_val,size(int_val)..., 1)
-	elseif size(x)[end] != 1 && size(x)[end-1] == 1
-		# For the case BATCH_SIZE != 1 and Channels = 1
-		int_val = dropdims(x, dims = tuple(findall(size(x) .== 1)...))
-        return reshape(int_val,size(int_val)..., 1, :)
-	elseif size(x)[end] == 1 && size(x)[end-1] == 1
-		# For the case BATCH_SIZE = 1 and Channels = 1
-		int_val = dropdims(x, dims = tuple(findall(size(x) .== 1)...))
-        return reshape(int_val,size(int_val)..., 1, 1)
-	else
-		size(x)[end] != 1 && size(x)[end-1] != 1
-        return dropdims(x, dims = tuple(findall(size(x) .== 1)...))
-    end
-end
+concat = (a, b) -> cat(a, b, dims=4)
+
+conv1 = (x, in, out) -> leakyrelu.(norm(conv(x, 1, in, out), out))
+conv2 = (x, in, out) -> leakyrelu.(norm(conv(x, 2, in, out), out))
+tran2 = (x, in, out) -> leakyrelu.(norm(tran(x, 2, in, out), out))
+
+# TODO: 2D layer utilities

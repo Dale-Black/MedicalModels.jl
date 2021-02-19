@@ -1,13 +1,21 @@
 module MedicalModels
 
 using Flux
-using Functors
 
 include("./unet3D.jl")
-include("./unet2D.jl")
 include("./utils.jl")
 
-export Unet3D,
-    Unet2D
+export 
+    # Export unet3D.jl functions
+    unet3D,
+
+    # Export utils.jl functions
+    conv,
+    tran,
+    norm,
+    concat,
+    conv1,
+    conv2,
+    tran2
 
 end
