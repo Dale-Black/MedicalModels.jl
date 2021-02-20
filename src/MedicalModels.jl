@@ -1,6 +1,7 @@
 module MedicalModels
 
 using Flux
+using Flux: Parallel
 
 include("./unet3D.jl")
 include("./utils.jl")
@@ -12,8 +13,6 @@ export
     # Export utils.jl functions
     conv,
     tran,
-    norm,
-    concat,
     conv1,
     conv2,
     tran2

@@ -1,15 +1,15 @@
-function unet3D(x, in_chs, lbl_chs)
-    # Contracting Layers
-    l1 = conv1(x, in_chs, in_chs*2)
-    l2 = conv1(conv2(l1, in_chs*2, in_chs*4), in_chs*4, in_chs*4)
-    l3 = conv1(conv2(l2, in_chs*4, in_chs*8), in_chs*8, in_chs*8)
-    l4 = conv1(conv2(l3, in_chs*8, in_chs*16), in_chs*16, in_chs*16)
-    l5 = conv1(conv2(l4, in_chs*16, in_chs*32), in_chs*32, in_chs*32)
+function unet3D(in_chs, lbl_chs)
+    # Contracting layers
+    l1 = Chain(conv1(in_chs, 4))
+    l2 = Chain(l1, conv1(4, 4), conv2(4, 16))
+    l3 = Chain(l2, conv1(16, 16), conv2(16, 32))
+    l4 = Chain(l3, conv1(32, 32), conv2(32, 64))
+    l5 = Chain(l4, conv1(64, 64), conv2(64, 128))
 
-    # Exapanding Layers
-    l6 = conv1(concat(tran2(l5, in_chs*32, in_chs*16), l4), in_chs*32, in_chs*16)
-    l7 = conv1(concat(tran2(l6, in_chs*16, in_chs*8), l3), in_chs*16, in_chs*8)
-    l8 = conv1(concat(tran2(l7, in_chs*8, in_chs*4), l2), in_chs*8, in_chs*4)
-    l9 = conv1(concat(tran2(l8, in_chs*4, in_chs*2), l1), in_chs*4, in_chs*2)
-    l10 = conv1(l9, in_chs*2, lbl_chs)
+    # Expanding layers
+    l6 = Chain(l5, tran2(128, 64), conv1(64, 64))
+    l7 = Chain(Parallel(+, l6, l4), tran2(64, 32), conv1(32, 32))
+    l8 = Chain(Parallel(+, l7, l3), tran2(32, 16), conv1(16, 16))
+    l9 = Chain(Parallel(+, l8, l2), tran2(16, 4), conv1(4, 4), )
+    l10 = Chain(l9, conv1(4, lbl_chs))
 end
